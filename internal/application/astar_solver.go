@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-// Node представляет узел в A*
+// Node represents a node in A*
 type Node struct {
 	Point    domain.Point
 	Cost     int
@@ -15,7 +15,7 @@ type Node struct {
 	Parent   *Node
 }
 
-// PriorityQueue реализует очередь с приоритетом для алгоритма A*
+// PriorityQueue implements a priority queue for the A* algorithm
 type PriorityQueue []*Node
 
 func (pq PriorityQueue) Len() int { return len(pq) }
@@ -49,11 +49,11 @@ func (pq *PriorityQueue) Pop() interface{} {
 type AStarSolver struct{}
 
 func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []domain.Point {
-	// Инициализация очереди с приоритетом
+	// Initialize priority queue
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 
-	// Создание начального узла
+	// Create the start node
 	startNode := &Node{
 		Point:    entry,
 		Cost:     0,
@@ -62,25 +62,25 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 	}
 	heap.Push(pq, startNode)
 
-	// Храним посещённые узлы
+	// Store visited nodes
 	visited := make(map[domain.Point]bool)
 	visited[entry] = true
 
-	// Направления для движения: вверх, вправо, вниз, влево
+	// Movement directions: up, right, down, left
 	directions := []domain.Point{
-		{X: 0, Y: -1}, // Вверх
-		{X: 1, Y: 0},  // Вправо
-		{X: 0, Y: 1},  // Вниз
-		{X: -1, Y: 0}, // Влево
+		{X: 0, Y: -1}, // Up
+		{X: 1, Y: 0},  // Right
+		{X: 0, Y: 1},  // Down
+		{X: -1, Y: 0}, // Left
 	}
 
-	// A* поиск пути
+	// A* pathfinding
 	for pq.Len() > 0 {
-		// Извлекаем узел с наименьшим приоритетом
+		// Extract the node with the lowest priority
 		currentNode := heap.Pop(pq).(*Node)
 		currentPoint := currentNode.Point
 
-		// Если достигли точки выхода, восстанавливаем путь
+		// If exit point is reached, reconstruct the path
 		if currentPoint == exit {
 			path := []domain.Point{}
 			for node := currentNode; node != nil; node = node.Parent {
@@ -89,19 +89,19 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 			return path
 		}
 
-		// Проходим по всем соседям
+		// Iterate over all neighbors
 		for _, dir := range directions {
 			neighborPoint := domain.Point{X: currentPoint.X + dir.X, Y: currentPoint.Y + dir.Y}
 
-			// Проверяем, что соседняя точка находится в пределах лабиринта и является проходом (не стеной)
+			// Check if the neighbor is within the maze bounds and is a passage (not a wall)
 			if neighborPoint.X >= 0 && neighborPoint.X < maze.Width && neighborPoint.Y >= 0 && neighborPoint.Y < maze.Height &&
 				!maze.Grid[neighborPoint.Y][neighborPoint.X].Wall && !visited[neighborPoint] {
 
-				// Вычисляем стоимость перехода и приоритет
+				// Calculate movement cost and priority
 				newCost := currentNode.Cost + 1
 				priority := newCost + s.heuristic(neighborPoint, exit)
 
-				// Создаём узел для соседа
+				// Create a node for the neighbor
 				neighborNode := &Node{
 					Point:    neighborPoint,
 					Cost:     newCost,
@@ -109,18 +109,18 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 					Parent:   currentNode,
 				}
 
-				// Добавляем соседа в очередь с приоритетом и отмечаем его как посещённого
+				// Add neighbor to the priority queue and mark as visited
 				heap.Push(pq, neighborNode)
 				visited[neighborPoint] = true
 			}
 		}
 	}
 
-	// Путь не найден
+	// Path not found
 	return nil
 }
 
-// heuristic вычисляет эвристику Манхэттена (расстояние от текущей точки до точки выхода)
+// heuristic calculates the Manhattan heuristic (distance from the current point to the exit point)
 func (s *AStarSolver) heuristic(a, b domain.Point) int {
 	return int(math.Abs(float64(a.X-b.X)) + math.Abs(float64(a.Y-b.Y)))
 }

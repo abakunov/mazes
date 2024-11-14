@@ -13,63 +13,72 @@ import (
 )
 
 func main() {
-	// Настройка graceful shutdown
+	// Setting up graceful shutdown
 	exitChan := make(chan os.Signal, 1)
 	signal.Notify(exitChan, os.Interrupt, syscall.SIGTERM)
 
-	// Запускаем goroutine для обработки сигнала завершения
+	// Launch a goroutine to handle the shutdown signal
 	go func() {
 		<-exitChan
-		fmt.Println("\nПрограмма завершена пользователем.")
+		fmt.Println("\nProgram terminated by the user.")
 		os.Exit(0)
 	}()
 
 	rand.Seed(time.Now().UnixNano())
 
-	// Получаем входные данные от пользователя через отдельные функции
+	// Get input data from the user through separate functions
 	width := infrastructure.GetWidth()
 	height := infrastructure.GetHeight()
 
-	// Инициализация лабиринта
+	// Maze initialization
 	maze := domain.NewMaze(width, height)
 
-	// Выбор алгоритма генерации
+	// Select generation algorithm
 	algorithmChoice := infrastructure.GetAlgorithmChoice()
 
-	// Выбор способа ввода точек входа и выхода
+	// Define the maze generator corresponding to the Generator interface
+	var generator domain.Generator
+	switch algorithmChoice {
+	case 1:
+		generator = &application.DFSGenerator{}
+	case 2:
+		generator = &application.KruskalGenerator{}
+	default:
+		fmt.Println("Error: invalid generation algorithm choice.")
+		os.Exit(1)
+	}
+
+	// Select the method for entering start and exit points
 	entryExitChoice := infrastructure.GetEntryExitChoice()
 	entryPoint, exitPoint := infrastructure.GetEntryExitPoints(entryExitChoice, width, height)
 
-	// Генерация лабиринта
-	switch algorithmChoice {
-	case 1:
-		DFSGenerator := &application.DFSGenerator{}
-		DFSGenerator.Generate(maze, entryPoint, exitPoint)
-	case 2:
-		kruskalGenerator := &application.KruskalGenerator{}
-		kruskalGenerator.Generate(maze, entryPoint, exitPoint)
-	}
+	// Maze generation
+	generator.Generate(maze, entryPoint, exitPoint)
 
-	// Выбор алгоритма поиска пути
+	// Select pathfinding algorithm
 	pathSolverChoice := infrastructure.GetPathSolverChoice()
 
-	// Поиск пути
-	var path []domain.Point
+	// Define the pathfinding algorithm corresponding to the Solver interface
+	var solver domain.Solver
 	switch pathSolverChoice {
 	case 1:
-		bfsSolver := &application.BFSSolver{}
-		path = bfsSolver.FindPath(maze, entryPoint, exitPoint)
+		solver = &application.BFSSolver{}
 	case 2:
-		aStarSolver := &application.AStarSolver{}
-		path = aStarSolver.FindPath(maze, entryPoint, exitPoint)
+		solver = &application.AStarSolver{}
+	default:
+		fmt.Println("Error: invalid pathfinding algorithm choice.")
+		os.Exit(1)
 	}
 
-	// Отрисовка
+	// Pathfinding
+	path := solver.FindPath(maze, entryPoint, exitPoint)
+
+	// Rendering
 	renderer := &infrastructure.ConsoleRenderer{}
 
-	fmt.Println("Сгенерированный лабиринт:")
+	fmt.Println("Generated maze:")
 	renderer.RenderMaze(maze)
 
-	fmt.Println("\nЛабиринт с найденным путём:")
+	fmt.Println("\nMaze with found path:")
 	renderer.RenderMazeWithPath(maze, path)
 }

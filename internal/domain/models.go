@@ -5,13 +5,11 @@ type Point struct {
 	Y int
 }
 
-// Cell представляет собой клетку лабиринта (проход или стена).
 type Cell struct {
 	Visited bool
 	Wall    bool
 }
 
-// Maze представляет собой сам лабиринт.
 type Maze struct {
 	Width  int
 	Height int

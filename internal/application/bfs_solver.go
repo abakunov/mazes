@@ -5,28 +5,28 @@ import "github.com/abakunov/mazes/internal/domain"
 type BFSSolver struct{}
 
 func (s *BFSSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []domain.Point {
-	// Инициализация очереди для BFS
+	// Initialize queue for BFS
 	queue := []domain.Point{entry}
 	visited := make(map[domain.Point]bool)
 	parent := make(map[domain.Point]domain.Point)
 
-	// Помечаем точку входа как посещённую
+	// Mark the entry point as visited
 	visited[entry] = true
 
-	// Направления для движения: вверх, вправо, вниз, влево
+	// Movement directions: up, right, down, left
 	directions := []domain.Point{
-		{X: 0, Y: -1}, // Вверх
-		{X: 1, Y: 0},  // Вправо
-		{X: 0, Y: 1},  // Вниз
-		{X: -1, Y: 0}, // Влево
+		{X: 0, Y: -1}, // Up
+		{X: 1, Y: 0},  // Right
+		{X: 0, Y: 1},  // Down
+		{X: -1, Y: 0}, // Left
 	}
 
-	// BFS-поиск пути
+	// BFS pathfinding
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
 
-		// Если достигли точки выхода, восстанавливаем путь
+		// If the exit point is reached, reconstruct the path
 		if current == exit {
 			path := []domain.Point{}
 			for p := current; p != entry; p = parent[p] {
@@ -35,11 +35,11 @@ func (s *BFSSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []doma
 			return append([]domain.Point{entry}, path...)
 		}
 
-		// Проходим по всем соседям
+		// Iterate over all neighbors
 		for _, dir := range directions {
 			neighbor := domain.Point{X: current.X + dir.X, Y: current.Y + dir.Y}
 
-			// Проверяем, что соседняя точка находится в пределах лабиринта и является проходом (не стеной)
+			// Check if the neighbor is within maze bounds and is a passage (not a wall)
 			if neighbor.X >= 0 && neighbor.X < maze.Width && neighbor.Y >= 0 && neighbor.Y < maze.Height &&
 				!maze.Grid[neighbor.Y][neighbor.X].Wall && !visited[neighbor] {
 				queue = append(queue, neighbor)
@@ -49,26 +49,26 @@ func (s *BFSSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []doma
 		}
 	}
 
-	// Путь не найден
+	// Path not found
 	return nil
 }
 
-// findEntrance находит первую открытую клетку на левой границе лабиринта.
+// findEntrance finds the first open cell on the left edge of the maze.
 func (s *BFSSolver) findEntrance(maze *domain.Maze) domain.Point {
 	for y := 0; y < maze.Height; y++ {
 		if !maze.Grid[y][0].Wall {
 			return domain.Point{X: 0, Y: y}
 		}
 	}
-	return domain.Point{X: 0, Y: 1} // Если не найдена, возвращаем дефолтное значение
+	return domain.Point{X: 0, Y: 1} // If not found, return a default value
 }
 
-// findExit находит первую открытую клетку на правой границе лабиринта.
+// findExit finds the first open cell on the right edge of the maze.
 func (s *BFSSolver) findExit(maze *domain.Maze) domain.Point {
 	for y := 0; y < maze.Height; y++ {
 		if !maze.Grid[y][maze.Width-1].Wall {
 			return domain.Point{X: maze.Width - 1, Y: y}
 		}
 	}
-	return domain.Point{X: maze.Width - 1, Y: maze.Height - 2} // Если не найдена, возвращаем дефолтное значение
+	return domain.Point{X: maze.Width - 1, Y: maze.Height - 2} // If not found, return a default value
 }

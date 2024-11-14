@@ -1,11 +1,11 @@
 package domain
 
-// MazeGenerator описывает интерфейс для генерации лабиринта.
-type MazeGenerator interface {
-	Generate(maze *Maze)
+// Generator describes the interface for maze generation.
+type Generator interface {
+	Generate(maze *Maze, entryPoint, exitPoint Point)
 }
 
-// PathSolver описывает интерфейс для нахождения пути в лабиринте.
-type PathSolver interface {
-	Solve(maze *Maze, start, end Point) []Point
+// Solver describes the interface for finding a path in the maze.
+type Solver interface {
+	FindPath(maze *Maze, entryPoint, exitPoint Point) []Point
 }

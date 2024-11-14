@@ -8,55 +8,55 @@ import (
 
 type DFSGenerator struct{}
 
-// Generate создает лабиринт с использованием алгоритма DFS (поиск в глубину).
+// Generate creates a maze using the DFS (Depth-First Search) algorithm.
 func (p *DFSGenerator) Generate(maze *domain.Maze, entryPoint, exitPoint domain.Point) {
 	rand.Seed(time.Now().UnixNano())
 
-	// Инициализация всех клеток как стены
+	// Initialize all cells as walls
 	for y := 0; y < maze.Height; y++ {
 		for x := 0; x < maze.Width; x++ {
 			maze.Grid[y][x] = domain.Cell{Wall: true, Visited: false}
 		}
 	}
 
-	// Установка внешних границ как стен, кроме точек входа и выхода
+	// Set outer boundaries as walls, except for entry and exit points
 	p.setOuterWalls(maze, entryPoint, exitPoint)
 
-	// Начинаем генерацию с точки входа, исключая внешние границы
+	// Start generation from the entry point, excluding outer boundaries
 	stack := []domain.Point{entryPoint}
 	maze.Grid[entryPoint.Y][entryPoint.X].Visited = true
 	maze.Grid[entryPoint.Y][entryPoint.X].Wall = false
 
-	// Поиск в глубину
+	// Depth-First Search
 	for len(stack) > 0 {
-		// Берём последнюю точку из стека
+		// Take the last point from the stack
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 
-		// Получаем список непосещённых соседей
+		// Get a list of unvisited neighbors
 		neighbors := p.getUnvisitedNeighbors(maze, current)
 		if len(neighbors) > 0 {
-			// Добавляем текущую точку обратно в стек
+			// Add the current point back to the stack
 			stack = append(stack, current)
 
-			// Выбираем случайного непосещённого соседа
+			// Choose a random unvisited neighbor
 			next := neighbors[rand.Intn(len(neighbors))]
 
-			// Убираем стену между текущей клеткой и выбранным соседом
+			// Remove the wall between the current cell and the chosen neighbor
 			p.removeWallBetween(maze, current, next)
 
-			// Помечаем соседа как посещённого и добавляем его в стек
+			// Mark the neighbor as visited and add it to the stack
 			maze.Grid[next.Y][next.X].Visited = true
 			maze.Grid[next.Y][next.X].Wall = false
 			stack = append(stack, next)
 		}
 	}
 
-	// Соединяем точку выхода с лабиринтом, если она изолирована
+	// Connect the exit point to the maze if it is isolated
 	p.connectExitPoint(maze, exitPoint)
 }
 
-// setOuterWalls устанавливает внешние границы как стены, оставляя проходы в точках входа и выхода
+// setOuterWalls sets the outer boundaries as walls, leaving passages at the entry and exit points
 func (p *DFSGenerator) setOuterWalls(maze *domain.Maze, entryPoint, exitPoint domain.Point) {
 	for x := 0; x < maze.Width; x++ {
 		maze.Grid[0][x].Wall = true
@@ -67,29 +67,29 @@ func (p *DFSGenerator) setOuterWalls(maze *domain.Maze, entryPoint, exitPoint do
 		maze.Grid[y][maze.Width-1].Wall = true
 	}
 
-	// Оставляем проходы для входа и выхода
+	// Leave passages for entry and exit
 	maze.Grid[entryPoint.Y][entryPoint.X].Wall = false
 	maze.Grid[exitPoint.Y][exitPoint.X].Wall = false
 }
 
-// connectExitPoint соединяет точку выхода с лабиринтом, если она изолирована
+// connectExitPoint connects the exit point to the maze if it is isolated
 func (p *DFSGenerator) connectExitPoint(maze *domain.Maze, exitPoint domain.Point) {
-	// Находим соседей точки выхода
+	// Find neighbors of the exit point
 	neighbors := p.getUnvisitedNeighbors(maze, exitPoint)
 	if len(neighbors) > 0 {
-		// Выбираем случайного соседа
+		// Choose a random neighbor
 		next := neighbors[rand.Intn(len(neighbors))]
 
-		// Убираем стену между точкой выхода и выбранным соседом
+		// Remove the wall between the exit point and the chosen neighbor
 		p.removeWallBetween(maze, exitPoint, next)
 
-		// Помечаем соседа как посещённого
+		// Mark the neighbor as visited
 		maze.Grid[next.Y][next.X].Visited = true
 		maze.Grid[next.Y][next.X].Wall = false
 	}
 }
 
-// getUnvisitedNeighbors возвращает список непосещённых соседей для указанной клетки
+// getUnvisitedNeighbors returns a list of unvisited neighbors for the specified cell
 func (p *DFSGenerator) getUnvisitedNeighbors(maze *domain.Maze, cell domain.Point) []domain.Point {
 	var neighbors []domain.Point
 	directions := []struct{ x, y int }{{2, 0}, {-2, 0}, {0, 2}, {0, -2}}
@@ -103,7 +103,7 @@ func (p *DFSGenerator) getUnvisitedNeighbors(maze *domain.Maze, cell domain.Poin
 	return neighbors
 }
 
-// removeWallBetween убирает стену между двумя соседними клетками
+// removeWallBetween removes the wall between two neighboring cells
 func (p *DFSGenerator) removeWallBetween(maze *domain.Maze, a, b domain.Point) {
 	wallX := (a.X + b.X) / 2
 	wallY := (a.Y + b.Y) / 2
