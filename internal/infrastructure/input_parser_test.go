@@ -1,27 +1,40 @@
-package infrastructure
+package infrastructure_test
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/abakunov/mazes/internal/infrastructure"
 )
 
-// Helper function for setting up standard input
+// Helper function for setting up standard input.
 func mockStdin(input string) func() {
 	origStdin := os.Stdin
 	r, w, _ := os.Pipe()
 	os.Stdin = r
-	w.WriteString(input)
-	w.Close()
+
+	// Check the error from WriteString
+	if _, err := w.WriteString(input); err != nil {
+		fmt.Println("Error writing to stdin pipe:", err)
+	}
+
+	err := w.Close()
+	if err != nil {
+		return nil
+	}
+
 	return func() {
 		os.Stdin = origStdin
 	}
 }
 
-// Helper function for capturing standard output
+// Helper function for capturing standard output.
 func captureStdout(f func()) string {
 	var buf bytes.Buffer
+
 	origStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
@@ -29,12 +42,15 @@ func captureStdout(f func()) string {
 	done := make(chan struct{})
 	go func() {
 		_, _ = buf.ReadFrom(r)
+
 		close(done)
 	}()
 
 	f()
+
 	_ = w.Close()
 	os.Stdout = origStdout
+
 	<-done
 
 	return buf.String()
@@ -45,10 +61,11 @@ func captureStdout(f func()) string {
 func TestGetWidth_InvalidEvenInput(t *testing.T) {
 	mockInput := "4\n5\n" // 4 - even, then 5 - odd
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		width := GetWidth()
+		width := infrastructure.GetWidth()
 		if width != 5 {
 			t.Errorf("Expected width to be 5, got %d", width)
 		}
@@ -61,11 +78,13 @@ func TestGetWidth_InvalidEvenInput(t *testing.T) {
 
 func TestGetWidth_NonNumericInput(t *testing.T) {
 	mockInput := "abc\n5\n" // "abc" - invalid value, then 5 - valid
+
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		width := GetWidth()
+		width := infrastructure.GetWidth()
 		if width != 5 {
 			t.Errorf("Expected width to be 5, got %d", width)
 		}
@@ -79,10 +98,11 @@ func TestGetWidth_NonNumericInput(t *testing.T) {
 func TestGetWidth_EmptyInput(t *testing.T) {
 	mockInput := "\n5\n" // empty input, then 5 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		width := GetWidth()
+		width := infrastructure.GetWidth()
 		if width != 5 {
 			t.Errorf("Expected width to be 5, got %d", width)
 		}
@@ -96,10 +116,11 @@ func TestGetWidth_EmptyInput(t *testing.T) {
 func TestGetHeight_NonNumericInput(t *testing.T) {
 	mockInput := "height\n7\n" // "height" - invalid value, then 7 - valid
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		height := GetHeight()
+		height := infrastructure.GetHeight()
 		if height != 7 {
 			t.Errorf("Expected height to be 7, got %d", height)
 		}
@@ -113,10 +134,11 @@ func TestGetHeight_NonNumericInput(t *testing.T) {
 func TestGetHeight_EmptyInput(t *testing.T) {
 	mockInput := "\n7\n" // empty input, then 7 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		height := GetHeight()
+		height := infrastructure.GetHeight()
 		if height != 7 {
 			t.Errorf("Expected height to be 7, got %d", height)
 		}
@@ -132,10 +154,11 @@ func TestGetHeight_EmptyInput(t *testing.T) {
 func TestGetAlgorithmChoice_InvalidStringInput(t *testing.T) {
 	mockInput := "invalid\n2\n" // invalid string, then 2 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		choice := GetAlgorithmChoice()
+		choice := infrastructure.GetAlgorithmChoice()
 		if choice != 2 {
 			t.Errorf("Expected algorithm choice to be 2, got %d", choice)
 		}
@@ -149,10 +172,11 @@ func TestGetAlgorithmChoice_InvalidStringInput(t *testing.T) {
 func TestGetAlgorithmChoice_EmptyInput(t *testing.T) {
 	mockInput := "\n1\n" // empty input, then 1 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		choice := GetAlgorithmChoice()
+		choice := infrastructure.GetAlgorithmChoice()
 		if choice != 1 {
 			t.Errorf("Expected algorithm choice to be 1, got %d", choice)
 		}
@@ -168,10 +192,11 @@ func TestGetAlgorithmChoice_EmptyInput(t *testing.T) {
 func TestGetEntryExitChoice_InvalidNegativeInput(t *testing.T) {
 	mockInput := "-1\n2\n" // -1 - invalid value, then 2 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		choice := GetEntryExitChoice()
+		choice := infrastructure.GetEntryExitChoice()
 		if choice != 2 {
 			t.Errorf("Expected entry/exit choice to be 2, got %d", choice)
 		}
@@ -187,10 +212,11 @@ func TestGetEntryExitChoice_InvalidNegativeInput(t *testing.T) {
 func TestGetPathSolverChoice_InvalidStringInput(t *testing.T) {
 	mockInput := "astar\n1\n" // "astar" - invalid value, then 1 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		choice := GetPathSolverChoice()
+		choice := infrastructure.GetPathSolverChoice()
 		if choice != 1 {
 			t.Errorf("Expected path solver choice to be 1, got %d", choice)
 		}
@@ -204,10 +230,11 @@ func TestGetPathSolverChoice_InvalidStringInput(t *testing.T) {
 func TestGetPathSolverChoice_EmptyInput(t *testing.T) {
 	mockInput := "\n2\n" // empty input, then 2 - valid value
 	restoreStdin := mockStdin(mockInput)
+
 	defer restoreStdin()
 
 	output := captureStdout(func() {
-		choice := GetPathSolverChoice()
+		choice := infrastructure.GetPathSolverChoice()
 		if choice != 2 {
 			t.Errorf("Expected path solver choice to be 2, got %d", choice)
 		}

@@ -2,11 +2,12 @@ package application
 
 import (
 	"container/heap"
-	"github.com/abakunov/mazes/internal/domain"
 	"math"
+
+	"github.com/abakunov/mazes/internal/domain"
 )
 
-// Node represents a node in A*
+// Node represents a node in A*.
 type Node struct {
 	Point    domain.Point
 	Cost     int
@@ -15,7 +16,7 @@ type Node struct {
 	Parent   *Node
 }
 
-// PriorityQueue implements a priority queue for the A* algorithm
+// PriorityQueue implements a priority queue for the A* algorithm.
 type PriorityQueue []*Node
 
 func (pq PriorityQueue) Len() int { return len(pq) }
@@ -43,6 +44,7 @@ func (pq *PriorityQueue) Pop() interface{} {
 	old[n-1] = nil  // avoid memory leak
 	node.Index = -1 // for safety
 	*pq = old[0 : n-1]
+
 	return node
 }
 
@@ -86,6 +88,7 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 			for node := currentNode; node != nil; node = node.Parent {
 				path = append([]domain.Point{node.Point}, path...)
 			}
+
 			return path
 		}
 
@@ -96,7 +99,6 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 			// Check if the neighbor is within the maze bounds and is a passage (not a wall)
 			if neighborPoint.X >= 0 && neighborPoint.X < maze.Width && neighborPoint.Y >= 0 && neighborPoint.Y < maze.Height &&
 				!maze.Grid[neighborPoint.Y][neighborPoint.X].Wall && !visited[neighborPoint] {
-
 				// Calculate movement cost and priority
 				newCost := currentNode.Cost + 1
 				priority := newCost + s.heuristic(neighborPoint, exit)
@@ -111,6 +113,7 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 
 				// Add neighbor to the priority queue and mark as visited
 				heap.Push(pq, neighborNode)
+
 				visited[neighborPoint] = true
 			}
 		}
@@ -120,7 +123,7 @@ func (s *AStarSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []do
 	return nil
 }
 
-// heuristic calculates the Manhattan heuristic (distance from the current point to the exit point)
+// heuristic calculates the Manhattan heuristic (distance from the current point to the exit point).
 func (s *AStarSolver) heuristic(a, b domain.Point) int {
 	return int(math.Abs(float64(a.X-b.X)) + math.Abs(float64(a.Y-b.Y)))
 }

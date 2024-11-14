@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/abakunov/mazes/internal/application"
-	"github.com/abakunov/mazes/internal/domain"
-	"github.com/abakunov/mazes/internal/infrastructure"
-	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
+
+	"github.com/abakunov/mazes/internal/application"
+	"github.com/abakunov/mazes/internal/domain"
+	"github.com/abakunov/mazes/internal/infrastructure"
 )
 
 func main() {
@@ -24,8 +23,6 @@ func main() {
 		os.Exit(0)
 	}()
 
-	rand.Seed(time.Now().UnixNano())
-
 	// Get input data from the user through separate functions
 	width := infrastructure.GetWidth()
 	height := infrastructure.GetHeight()
@@ -38,11 +35,12 @@ func main() {
 
 	// Define the maze generator corresponding to the Generator interface
 	var generator domain.Generator
+
 	switch algorithmChoice {
 	case 1:
-		generator = &application.DFSGenerator{}
+		generator = &application.DFSGenerator{} // Pass rng to DFS generator
 	case 2:
-		generator = &application.KruskalGenerator{}
+		generator = &application.KruskalGenerator{} // Pass rng to Kruskal generator
 	default:
 		fmt.Println("Error: invalid generation algorithm choice.")
 		os.Exit(1)
@@ -60,6 +58,7 @@ func main() {
 
 	// Define the pathfinding algorithm corresponding to the Solver interface
 	var solver domain.Solver
+
 	switch pathSolverChoice {
 	case 1:
 		solver = &application.BFSSolver{}

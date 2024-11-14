@@ -28,10 +28,11 @@ func (s *BFSSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []doma
 
 		// If the exit point is reached, reconstruct the path
 		if current == exit {
-			path := []domain.Point{}
+			var path []domain.Point
 			for p := current; p != entry; p = parent[p] {
 				path = append([]domain.Point{p}, path...)
 			}
+
 			return append([]domain.Point{entry}, path...)
 		}
 
@@ -51,24 +52,4 @@ func (s *BFSSolver) FindPath(maze *domain.Maze, entry, exit domain.Point) []doma
 
 	// Path not found
 	return nil
-}
-
-// findEntrance finds the first open cell on the left edge of the maze.
-func (s *BFSSolver) findEntrance(maze *domain.Maze) domain.Point {
-	for y := 0; y < maze.Height; y++ {
-		if !maze.Grid[y][0].Wall {
-			return domain.Point{X: 0, Y: y}
-		}
-	}
-	return domain.Point{X: 0, Y: 1} // If not found, return a default value
-}
-
-// findExit finds the first open cell on the right edge of the maze.
-func (s *BFSSolver) findExit(maze *domain.Maze) domain.Point {
-	for y := 0; y < maze.Height; y++ {
-		if !maze.Grid[y][maze.Width-1].Wall {
-			return domain.Point{X: maze.Width - 1, Y: y}
-		}
-	}
-	return domain.Point{X: maze.Width - 1, Y: maze.Height - 2} // If not found, return a default value
 }

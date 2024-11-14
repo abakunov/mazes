@@ -3,8 +3,9 @@ package infrastructure
 import (
 	"fmt"
 
-	"github.com/abakunov/mazes/internal/domain"
 	"github.com/fatih/color"
+
+	"github.com/abakunov/mazes/internal/domain"
 )
 
 type ConsoleRenderer struct{}
